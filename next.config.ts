@@ -9,7 +9,6 @@ const nextConfig: NextConfig = {
     cssChunking: true,
     inlineCss: true,
   },
-  typedRoutes: true,
   poweredByHeader: false,
   images: {
     remotePatterns: [
