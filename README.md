@@ -202,6 +202,10 @@ pnpm check:fix  # Auto-fix linting and formatting issues
 pnpm typecheck  # Ensure no TypeScript errors
 ```
 
+## Testing
+
+This project is tested with BrowserStack.
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
