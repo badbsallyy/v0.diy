@@ -336,7 +336,7 @@ export function ChatSelector() {
                   className="flex items-center"
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  View on v0.dev
+                  View on v0.app
                 </a>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

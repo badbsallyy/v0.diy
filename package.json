@@ -24,10 +24,10 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "biome check --no-errors-on-unmatched"
+      "biome check --write --no-errors-on-unmatched"
     ],
     "*.{json,md,css}": [
-      "biome format --no-errors-on-unmatched"
+      "biome format --write --no-errors-on-unmatched"
     ]
   },
   "dependencies": {

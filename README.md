@@ -7,7 +7,7 @@
   ╚═══╝   ╚═════╝       ╚═════╝ ╚═╝   ╚═╝   
 ```
 
-**Open-source clone of v0.dev with AI-powered React component generation**
+**Open-source clone of v0.app with AI-powered React component generation**
 
 [![GitHub Stars](https://img.shields.io/github/stars/SujalXplores/v0.diy?style=flat-square&logo=github&labelColor=1a1a2e&color=4a4e69)](https://github.com/SujalXplores/v0.diy/stargazers)
 [![GitHub Forks](https://img.shields.io/github/forks/SujalXplores/v0.diy?style=flat-square&logo=github&labelColor=1a1a2e&color=4a4e69)](https://github.com/SujalXplores/v0.diy/network/members)
@@ -25,7 +25,7 @@
 
 ## Overview
 
-v0.diy is a self-hosted, open-source alternative to [v0.dev](https://v0.dev) that transforms natural language descriptions into production-ready React components. Built with the latest web technologies and designed for developers who want full control over their AI-assisted development workflow.
+v0.diy is a self-hosted, open-source alternative to [v0.app](https://v0.app) that transforms natural language descriptions into production-ready React components. Built with the latest web technologies and designed for developers who want full control over their AI-assisted development workflow.
 
 ## Features
 
@@ -49,7 +49,7 @@ v0.diy is a self-hosted, open-source alternative to [v0.dev](https://v0.dev) tha
 - Node.js 22.x or later
 - pnpm 9.0 or later
 - PostgreSQL database (local or hosted)
-- v0 API key from [v0.dev](https://v0.dev/chat/settings/keys)
+- v0 API key from [v0.app](https://v0.app/chat/settings/keys)
 
 ### Installation
 
@@ -134,7 +134,7 @@ The application will be available at `http://localhost:3000`.
 - **Vercel Postgres** — Cloud-hosted PostgreSQL support
 
 ### AI Integration
-- **v0 SDK 0.15.3** — Official v0.dev API client
+- **v0 SDK 0.15.3** — Official v0.app API client
 - **AI SDK 6.0.11** — Streaming AI response handling
 - **@v0-sdk/react 0.4.1** — React components for AI interactions
 
