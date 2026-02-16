@@ -1,6 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server";
 import type { Session } from "next-auth";
-import OpenAI from "openai";
+import {
+  type AIProviderType,
+  type ChatMessage,
+  createCompletion,
+  createStreamingCompletion,
+  getActiveProvider,
+  getAvailableProviders,
+} from "@/lib/ai-provider";
 import { auth } from "@/app/(auth)/auth";
 import {
   addMessageToChat,
@@ -10,10 +17,6 @@ import {
 } from "@/lib/db/queries";
 import { userEntitlements } from "@/lib/entitlements";
 import { ChatSDKError } from "@/lib/errors";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 const SYSTEM_PROMPT = `You are an expert React component generator specialized in creating production-ready, modern React components.
 
@@ -72,19 +75,12 @@ function createStreamingResponse(stream: ReadableStream<Uint8Array>): Response {
   return new Response(stream, { headers: STREAMING_HEADERS });
 }
 
-type OpenAIMessage = { role: "system" | "user" | "assistant"; content: string };
-
 async function handleStreaming(
-  messages: OpenAIMessage[],
+  provider: AIProviderType,
+  messages: ChatMessage[],
   activeChatId: string,
 ): Promise<Response> {
-  const stream = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL || "gpt-4-turbo-preview",
-    messages,
-    stream: true,
-    temperature: 0.7,
-    max_tokens: 4096,
-  });
+  const stream = createStreamingCompletion(provider, messages);
 
   let fullResponse = "";
   const encoder = new TextEncoder();
@@ -99,12 +95,11 @@ async function handleStreaming(
         controller.enqueue(encoder.encode(`data: ${chatMeta}\n\n`));
 
         for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content || "";
-          if (content) {
-            fullResponse += content;
+          if (chunk.content) {
+            fullResponse += chunk.content;
             controller.enqueue(
               encoder.encode(
-                `data: ${JSON.stringify({ type: "content", content })}\n\n`,
+                `data: ${JSON.stringify({ type: "content", content: chunk.content })}\n\n`,
               ),
             );
           }
@@ -132,18 +127,12 @@ async function handleStreaming(
 }
 
 async function handleNonStreaming(
-  messages: OpenAIMessage[],
+  provider: AIProviderType,
+  messages: ChatMessage[],
   userMessage: string,
   activeChatId: string,
 ): Promise<Response> {
-  const completion = await openai.chat.completions.create({
-    model: process.env.OPENAI_MODEL || "gpt-4-turbo-preview",
-    messages,
-    temperature: 0.7,
-    max_tokens: 4096,
-  });
-
-  const assistantContent = completion.choices[0].message.content || "";
+  const assistantContent = await createCompletion(provider, messages);
 
   if (activeChatId) {
     await addMessageToChat({
@@ -165,7 +154,8 @@ async function handleNonStreaming(
 export async function POST(request: NextRequest) {
   try {
     const session = await auth();
-    const { message, chatId, streaming } = await request.json();
+    const { message, chatId, streaming, provider: requestedProvider } =
+      await request.json();
 
     if (!message) {
       return NextResponse.json(
@@ -179,14 +169,27 @@ export async function POST(request: NextRequest) {
       return rateLimitResponse;
     }
 
+    // Resolve provider (per-request override or default)
+    const provider = getActiveProvider(requestedProvider);
+
+    // Verify the chosen provider has an API key configured
+    const available = getAvailableProviders();
+    if (!available.includes(provider)) {
+      return NextResponse.json(
+        {
+          error: `Provider "${provider}" is not configured. Set the corresponding API key in your environment variables.`,
+        },
+        { status: 400 },
+      );
+    }
+
     // userId is guaranteed non-null by checkRateLimit above
     const userId = session?.user?.id || "";
 
-    // Build messages array for OpenAI
-    const messages: {
-      role: "system" | "user" | "assistant";
-      content: string;
-    }[] = [{ role: "system", content: SYSTEM_PROMPT }];
+    // Build messages array for the AI provider
+    const messages: ChatMessage[] = [
+      { role: "system", content: SYSTEM_PROMPT },
+    ];
 
     let activeChatId = chatId;
 
@@ -212,12 +215,12 @@ export async function POST(request: NextRequest) {
     messages.push({ role: "user", content: message });
 
     if (streaming) {
-      return handleStreaming(messages, activeChatId);
+      return handleStreaming(provider, messages, activeChatId);
     }
 
-    return handleNonStreaming(messages, message, activeChatId);
+    return handleNonStreaming(provider, messages, message, activeChatId);
   } catch (error) {
-    console.error("OpenAI API Error:", error);
+    console.error("AI Provider Error:", error);
     return NextResponse.json(
       {
         error: "Failed to process request",

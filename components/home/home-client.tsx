@@ -25,6 +25,10 @@ import { ChatInput } from "@/components/chat/chat-input";
 import { ChatMessages } from "@/components/chat/chat-messages";
 import { PreviewPanel } from "@/components/chat/preview-panel";
 import { AppHeader } from "@/components/shared/app-header";
+import {
+  ProviderSelector,
+  useProviderSelection,
+} from "@/components/shared/provider-selector";
 import { ResizableLayout } from "@/components/shared/resizable-layout";
 import type { ChatData, MessageBinaryFormat } from "@/types/chat";
 
@@ -51,6 +55,7 @@ function SearchParamsHandler({ onReset }: { onReset: () => void }) {
 export function HomeClient() {
   const { status } = useSession();
   const router = useRouter();
+  const { provider, setProvider } = useProviderSelection();
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showChatInterface, setShowChatInterface] = useState(false);
@@ -215,6 +220,7 @@ export function HomeClient() {
         body: JSON.stringify({
           message: userMessage,
           streaming: true,
+          provider,
           attachments: currentAttachments.map((att) => ({ url: att.dataUrl })),
         }),
       });
@@ -376,6 +382,7 @@ export function HomeClient() {
           message: userMessage,
           chatId: currentChatId,
           streaming: true,
+          provider,
         }),
       });
 
@@ -508,6 +515,11 @@ export function HomeClient() {
               />
               <PromptInputToolbar>
                 <PromptInputTools>
+                  <ProviderSelector
+                    value={provider}
+                    onChange={setProvider}
+                    disabled={isLoading}
+                  />
                   <PromptInputImageButton
                     onImageSelect={handleImageFiles}
                     disabled={isLoading}
@@ -653,6 +665,13 @@ export function HomeClient() {
                 className="text-foreground hover:underline"
               >
                 OpenAI
+              </Link>
+              {" & "}
+              <Link
+                href="https://aistudio.google.com"
+                className="text-foreground hover:underline"
+              >
+                Google Gemini
               </Link>
             </p>
           </div>

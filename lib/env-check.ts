@@ -8,12 +8,6 @@ export interface MissingEnvVar {
 export function checkRequiredEnvVars(): MissingEnvVar[] {
   const requiredVars: MissingEnvVar[] = [
     {
-      name: "OPENAI_API_KEY",
-      description: "Your OpenAI API key for generating React components",
-      example: "sk-...",
-      required: true,
-    },
-    {
       name: "AUTH_SECRET",
       description: "Secret key for NextAuth.js authentication",
       example: "your-secret-key-here",
@@ -32,6 +26,20 @@ export function checkRequiredEnvVars(): MissingEnvVar[] {
     return !value || value.trim() === "";
   });
 
+  // At least one AI provider API key must be set
+  const hasOpenAI = !!process.env.OPENAI_API_KEY?.trim();
+  const hasGemini = !!process.env.GEMINI_API_KEY?.trim();
+
+  if (!(hasOpenAI || hasGemini)) {
+    missing.push({
+      name: "OPENAI_API_KEY or GEMINI_API_KEY",
+      description:
+        "At least one AI provider API key is required (OpenAI or Google Gemini)",
+      example: "sk-... or AIza...",
+      required: true,
+    });
+  }
+
   return missing;
 }
 
@@ -39,8 +47,11 @@ export function hasAllRequiredEnvVars(): boolean {
   return checkRequiredEnvVars().length === 0;
 }
 
+const hasOpenAI = !!process.env.OPENAI_API_KEY;
+const hasGemini = !!process.env.GEMINI_API_KEY;
+
 export const hasEnvVars = !!(
-  process.env.OPENAI_API_KEY &&
+  (hasOpenAI || hasGemini) &&
   process.env.AUTH_SECRET &&
   process.env.POSTGRES_URL
 );
