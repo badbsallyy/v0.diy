@@ -77,7 +77,8 @@ export function ProviderSelector({
 }
 
 export function useProviderSelection() {
-  const [provider, setProvider] = useState<Provider>("openai");
+  const [provider, setProvider] = useState<Provider | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Initialize from server-side default
   useEffect(() => {
@@ -89,9 +90,17 @@ export function useProviderSelection() {
         }
       })
       .catch(() => {
-        // Keep default
+        // Fallback to openai if fetch fails
+        setProvider("openai");
+      })
+      .finally(() => {
+        setIsLoaded(true);
       });
   }, []);
 
-  return { provider, setProvider };
+  return {
+    provider: provider || "openai",
+    setProvider: (p: Provider) => setProvider(p),
+    isLoaded,
+  };
 }

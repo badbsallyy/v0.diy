@@ -152,6 +152,7 @@ async function handleNonStreaming(
 }
 
 export async function POST(request: NextRequest) {
+  let providerName = "unknown";
   try {
     const session = await auth();
     const { message, chatId, streaming, provider: requestedProvider } =
@@ -171,6 +172,7 @@ export async function POST(request: NextRequest) {
 
     // Resolve provider (per-request override or default)
     const provider = getActiveProvider(requestedProvider);
+    providerName = provider;
 
     // Verify the chosen provider has an API key configured
     const available = getAvailableProviders();
@@ -220,7 +222,7 @@ export async function POST(request: NextRequest) {
 
     return handleNonStreaming(provider, messages, message, activeChatId);
   } catch (error) {
-    console.error("AI Provider Error:", error);
+    console.error(`AI Provider Error (${providerName}):`, error);
     return NextResponse.json(
       {
         error: "Failed to process request",
