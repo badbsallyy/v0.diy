@@ -49,7 +49,7 @@ v0.diy is a self-hosted, open-source alternative to [v0.app](https://v0.app) tha
 - Node.js 22.x or later
 - pnpm 9.0 or later
 - PostgreSQL database (local or hosted)
-- v0 API key from [v0.app](https://v0.app/chat/settings/keys)
+- OpenAI API key from [OpenAI Platform](https://platform.openai.com/api-keys)
 
 ### Installation
 
@@ -79,11 +79,11 @@ POSTGRES_URL=postgresql://user:password@localhost:5432/v0_diy
 # Authentication (required - generate with: openssl rand -base64 32)
 AUTH_SECRET=your_auth_secret_here
 
-# v0 API (required)
-V0_API_KEY=your_v0_api_key_here
+# OpenAI API (required)
+OPENAI_API_KEY=sk-your_openai_api_key_here
 
-# Optional: Custom v0 API URL
-V0_API_URL=
+# Optional: OpenAI model to use (defaults to gpt-4-turbo-preview)
+OPENAI_MODEL=
 ```
 
 > **Note:** In development mode, if `AUTH_SECRET` is not set, a default development secret will be used automatically.
@@ -134,9 +134,9 @@ The application will be available at `http://localhost:3000`.
 - **Vercel Postgres** — Cloud-hosted PostgreSQL support
 
 ### AI Integration
-- **v0 SDK 0.15.3** — Official v0.app API client
+- **OpenAI GPT-4** — AI-powered React component generation
 - **AI SDK 6.0.11** — Streaming AI response handling
-- **@v0-sdk/react 0.4.1** — React components for AI interactions
+- **@v0-sdk/react 0.4.1** — React components for structured content rendering
 
 ### Developer Experience
 - **Biome 2.3.11** — Fast linter and formatter

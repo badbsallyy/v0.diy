@@ -1,9 +1,13 @@
-import type { MessageBinaryFormat } from "@v0-sdk/react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
 import { useStreaming } from "@/contexts/streaming-context";
-import type { Chat, ChatData, ChatMessage } from "@/types/chat";
+import type {
+  Chat,
+  ChatData,
+  ChatMessage,
+  MessageBinaryFormat,
+} from "@/types/chat";
 
 /**
  * Extracts a chat ID from a nested content structure.

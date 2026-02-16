@@ -1,11 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "v0-sdk";
 import { auth } from "@/app/(auth)/auth";
-import { getChatOwnership } from "@/lib/db/queries";
-
-const v0 = createClient(
-  process.env.V0_API_URL ? { baseUrl: process.env.V0_API_URL } : {},
-);
+import { getChatById, updateChatVisibility } from "@/lib/db/queries";
 
 export async function PATCH(
   request: NextRequest,
@@ -29,8 +24,8 @@ export async function PATCH(
       );
     }
 
-    const ownership = await getChatOwnership({ v0ChatId: chatId });
-    if (!ownership || ownership.user_id !== session.user.id) {
+    const chat = await getChatById({ chatId });
+    if (!chat || chat.user_id !== session.user.id) {
       return NextResponse.json(
         { error: "Chat not found or access denied" },
         { status: 404 },
@@ -51,12 +46,9 @@ export async function PATCH(
       );
     }
 
-    const updatedChat = await v0.chats.update({
-      chatId,
-      privacy,
-    });
+    await updateChatVisibility({ chatId, visibility: privacy });
 
-    return NextResponse.json(updatedChat);
+    return NextResponse.json({ id: chatId, visibility: privacy });
   } catch (error) {
     console.error("Change Chat Visibility Error:", error);
 

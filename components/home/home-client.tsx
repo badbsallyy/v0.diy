@@ -1,7 +1,5 @@
 "use client";
 
-import type { MessageBinaryFormat } from "@v0-sdk/react";
-import { StreamingMessage } from "@v0-sdk/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -28,7 +26,7 @@ import { ChatMessages } from "@/components/chat/chat-messages";
 import { PreviewPanel } from "@/components/chat/preview-panel";
 import { AppHeader } from "@/components/shared/app-header";
 import { ResizableLayout } from "@/components/shared/resizable-layout";
-import type { ChatData } from "@/types/chat";
+import type { ChatData, MessageBinaryFormat } from "@/types/chat";
 
 // Component that uses useSearchParams - needs to be wrapped in Suspense
 function SearchParamsHandler({ onReset }: { onReset: () => void }) {
@@ -463,27 +461,6 @@ export function HomeClient() {
             />
           }
         />
-
-        {/* Hidden streaming component for initial response */}
-        {chatHistory.some((msg) => msg.isStreaming && msg.stream) && (
-          <div className="hidden">
-            {chatHistory.map((msg, index) =>
-              msg.isStreaming && msg.stream ? (
-                <StreamingMessage
-                  key={`streaming-${msg.type}-${index}`}
-                  stream={msg.stream}
-                  messageId={`msg-${index}`}
-                  onComplete={handleStreamingComplete}
-                  onChatData={handleChatData}
-                  onError={(error) => {
-                    console.error("Streaming error:", error);
-                    setIsLoading(false);
-                  }}
-                />
-              ) : null,
-            )}
-          </div>
-        )}
       </div>
     );
   }
@@ -672,10 +649,10 @@ export function HomeClient() {
             <p>
               Powered by{" "}
               <Link
-                href="https://v0-sdk.dev"
+                href="https://platform.openai.com"
                 className="text-foreground hover:underline"
               >
-                v0 SDK
+                OpenAI
               </Link>
             </p>
           </div>

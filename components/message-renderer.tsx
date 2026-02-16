@@ -1,4 +1,5 @@
-import { Message, type MessageBinaryFormat } from "@v0-sdk/react";
+import { Message } from "@v0-sdk/react";
+import type { MessageBinaryFormat } from "@/types/chat";
 import { sharedComponents } from "./shared-components";
 
 // Function to preprocess message content and remove V0_FILE markers and shell placeholders

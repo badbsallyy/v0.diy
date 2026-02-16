@@ -8,9 +8,9 @@ export interface MissingEnvVar {
 export function checkRequiredEnvVars(): MissingEnvVar[] {
   const requiredVars: MissingEnvVar[] = [
     {
-      name: "V0_API_KEY",
-      description: "Your v0 API key for generating apps",
-      example: "v0_sk_...",
+      name: "OPENAI_API_KEY",
+      description: "Your OpenAI API key for generating React components",
+      example: "sk-...",
       required: true,
     },
     {
@@ -40,7 +40,7 @@ export function hasAllRequiredEnvVars(): boolean {
 }
 
 export const hasEnvVars = !!(
-  process.env.V0_API_KEY &&
+  process.env.OPENAI_API_KEY &&
   process.env.AUTH_SECRET &&
   process.env.POSTGRES_URL
 );

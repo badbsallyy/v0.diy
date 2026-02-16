@@ -1,4 +1,13 @@
-import type { MessageBinaryFormat } from "@v0-sdk/react";
+/**
+ * Type for message content - plain string for OpenAI responses.
+ * Kept as a union type for backward compatibility with existing rendering code.
+ */
+export type MessageBinaryFormat = [number, ...unknown[]][];
+
+/**
+ * General message content type supporting both string and structured formats.
+ */
+export type MessageContent = string | MessageBinaryFormat;
 
 /**
  * Task part types for structured task content in shared-components

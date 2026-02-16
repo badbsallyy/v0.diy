@@ -1,11 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "v0-sdk";
 import { auth } from "@/app/(auth)/auth";
-import { getChatOwnership } from "@/lib/db/queries";
-
-const v0 = createClient(
-  process.env.V0_API_URL ? { baseUrl: process.env.V0_API_URL } : {},
-);
+import { getChatById } from "@/lib/db/queries";
 
 export async function GET(
   _request: NextRequest,
@@ -22,21 +17,28 @@ export async function GET(
       );
     }
 
-    if (session?.user?.id) {
-      const ownership = await getChatOwnership({ v0ChatId: chatId });
+    const chat = await getChatById({ chatId });
 
-      if (!ownership) {
-        return NextResponse.json({ error: "Chat not found" }, { status: 404 });
-      }
-
-      if (ownership.user_id !== session.user.id) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
+    if (!chat) {
+      return NextResponse.json({ error: "Chat not found" }, { status: 404 });
     }
 
-    const chatDetails = await v0.chats.getById({ chatId });
+    if (session?.user?.id && chat.user_id !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-    return NextResponse.json(chatDetails);
+    return NextResponse.json({
+      id: chat.id,
+      name: chat.name,
+      demo: chat.demo_url,
+      messages: (chat.messages || []).map((msg, index) => ({
+        id: `${chat.id}-msg-${index}`,
+        role: msg.role,
+        content: msg.content,
+      })),
+      createdAt: chat.created_at,
+      updatedAt: chat.updated_at,
+    });
   } catch (error) {
     console.error("Error fetching chat details:", error);
 

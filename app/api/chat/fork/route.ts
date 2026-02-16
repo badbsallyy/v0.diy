@@ -1,12 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "v0-sdk";
-
-const v0 = createClient(
-  process.env.V0_API_URL ? { baseUrl: process.env.V0_API_URL } : {},
-);
+import { auth } from "@/app/(auth)/auth";
+import { forkChat } from "@/lib/db/queries";
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
     const { chatId } = await request.json();
 
     if (!chatId) {
@@ -16,12 +14,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const forkedChat = await v0.chats.fork({
-      chatId,
-      privacy: "private",
-    });
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 },
+      );
+    }
 
-    return NextResponse.json(forkedChat);
+    const newChatId = await forkChat({ chatId, userId: session.user.id });
+
+    return NextResponse.json({ id: newChatId });
   } catch (error) {
     console.error("Error forking chat:", error);
     return NextResponse.json({ error: "Failed to fork chat" }, { status: 500 });
