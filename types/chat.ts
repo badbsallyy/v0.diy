@@ -1,6 +1,6 @@
 /**
- * Type for message content - plain string for OpenAI responses.
- * Kept as a union type for backward compatibility with existing rendering code.
+ * Type for structured message content (array-of-arrays binary format).
+ * Used for backward compatibility with @v0-sdk/react rendering components.
  */
 export type MessageBinaryFormat = [number, ...unknown[]][];
 

@@ -154,13 +154,13 @@ export async function createChat({
 }): Promise<string> {
   try {
     const chatId = nanoid();
-    const name = message.slice(0, 100);
+    const chatName = message.slice(0, 100);
     await getDb()
       .insert(chats)
       .values({
         id: chatId,
         user_id: userId,
-        name,
+        name: chatName,
         messages: [{ role: "user", content: message }],
       });
 

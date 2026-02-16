@@ -45,11 +45,9 @@ async function consumeSSEStream(
   let accumulated = "";
 
   try {
-    let done = false;
-    while (!done) {
+    for (;;) {
       const result = await reader.read();
-      done = result.done;
-      if (done) {
+      if (result.done) {
         break;
       }
       const text = decoder.decode(result.value, { stream: true });
