@@ -1,5 +1,13 @@
 import type { InferSelectModel } from "drizzle-orm";
-import { pgTable, timestamp, unique, uuid, varchar } from "drizzle-orm/pg-core";
+import {
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
@@ -29,3 +37,21 @@ export const chat_ownerships = pgTable(
 );
 
 export type ChatOwnership = InferSelectModel<typeof chat_ownerships>;
+
+// Local chat storage for OpenAI-powered chats
+export const chats = pgTable("chats", {
+  id: text("id").primaryKey(),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => users.id),
+  name: text("name"),
+  messages: jsonb("messages")
+    .default([])
+    .$type<Array<{ role: string; content: string }>>(),
+  visibility: varchar("visibility", { length: 20 }).default("private"),
+  demo_url: text("demo_url"),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export type Chat = InferSelectModel<typeof chats>;

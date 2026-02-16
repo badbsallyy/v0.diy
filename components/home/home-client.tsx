@@ -1,7 +1,5 @@
 "use client";
 
-import type { MessageBinaryFormat } from "@v0-sdk/react";
-import { StreamingMessage } from "@v0-sdk/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -27,8 +25,12 @@ import { ChatInput } from "@/components/chat/chat-input";
 import { ChatMessages } from "@/components/chat/chat-messages";
 import { PreviewPanel } from "@/components/chat/preview-panel";
 import { AppHeader } from "@/components/shared/app-header";
+import {
+  ProviderSelector,
+  useProviderSelection,
+} from "@/components/shared/provider-selector";
 import { ResizableLayout } from "@/components/shared/resizable-layout";
-import type { ChatData } from "@/types/chat";
+import type { ChatData, MessageBinaryFormat } from "@/types/chat";
 
 // Component that uses useSearchParams - needs to be wrapped in Suspense
 function SearchParamsHandler({ onReset }: { onReset: () => void }) {
@@ -53,6 +55,7 @@ function SearchParamsHandler({ onReset }: { onReset: () => void }) {
 export function HomeClient() {
   const { status } = useSession();
   const router = useRouter();
+  const { provider, setProvider } = useProviderSelection();
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showChatInterface, setShowChatInterface] = useState(false);
@@ -217,6 +220,7 @@ export function HomeClient() {
         body: JSON.stringify({
           message: userMessage,
           streaming: true,
+          provider,
           attachments: currentAttachments.map((att) => ({ url: att.dataUrl })),
         }),
       });
@@ -378,6 +382,7 @@ export function HomeClient() {
           message: userMessage,
           chatId: currentChatId,
           streaming: true,
+          provider,
         }),
       });
 
@@ -463,27 +468,6 @@ export function HomeClient() {
             />
           }
         />
-
-        {/* Hidden streaming component for initial response */}
-        {chatHistory.some((msg) => msg.isStreaming && msg.stream) && (
-          <div className="hidden">
-            {chatHistory.map((msg, index) =>
-              msg.isStreaming && msg.stream ? (
-                <StreamingMessage
-                  key={`streaming-${msg.type}-${index}`}
-                  stream={msg.stream}
-                  messageId={`msg-${index}`}
-                  onComplete={handleStreamingComplete}
-                  onChatData={handleChatData}
-                  onError={(error) => {
-                    console.error("Streaming error:", error);
-                    setIsLoading(false);
-                  }}
-                />
-              ) : null,
-            )}
-          </div>
-        )}
       </div>
     );
   }
@@ -531,6 +515,11 @@ export function HomeClient() {
               />
               <PromptInputToolbar>
                 <PromptInputTools>
+                  <ProviderSelector
+                    value={provider}
+                    onChange={setProvider}
+                    disabled={isLoading}
+                  />
                   <PromptInputImageButton
                     onImageSelect={handleImageFiles}
                     disabled={isLoading}
@@ -672,10 +661,17 @@ export function HomeClient() {
             <p>
               Powered by{" "}
               <Link
-                href="https://v0-sdk.dev"
+                href="https://platform.openai.com"
                 className="text-foreground hover:underline"
               >
-                v0 SDK
+                OpenAI
+              </Link>
+              {" & "}
+              <Link
+                href="https://aistudio.google.com"
+                className="text-foreground hover:underline"
+              >
+                Google Gemini
               </Link>
             </p>
           </div>

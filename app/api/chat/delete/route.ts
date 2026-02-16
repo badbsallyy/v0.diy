@@ -1,9 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { createClient } from "v0-sdk";
-
-const v0 = createClient(
-  process.env.V0_API_URL ? { baseUrl: process.env.V0_API_URL } : {},
-);
+import { deleteChat } from "@/lib/db/queries";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,11 +12,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await v0.chats.delete({
-      chatId,
-    });
+    await deleteChat({ chatId });
 
-    return NextResponse.json(result);
+    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting chat:", error);
     return NextResponse.json(

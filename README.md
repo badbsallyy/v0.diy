@@ -32,6 +32,7 @@ v0.diy is a self-hosted, open-source alternative to [v0.app](https://v0.app) tha
 | Feature | Description |
 |---------|-------------|
 | **AI Component Generation** | Convert natural language prompts into functional React components |
+| **Multi-Provider AI** | Choose between OpenAI (GPT-4) and Google Gemini for code generation |
 | **Real-time Streaming** | Watch code generation happen live with streaming responses |
 | **User Authentication** | Secure email/password authentication with NextAuth.js |
 | **Rate Limiting** | 50 messages per day for authenticated users |
@@ -49,7 +50,9 @@ v0.diy is a self-hosted, open-source alternative to [v0.app](https://v0.app) tha
 - Node.js 22.x or later
 - pnpm 9.0 or later
 - PostgreSQL database (local or hosted)
-- v0 API key from [v0.app](https://v0.app/chat/settings/keys)
+- At least one AI provider API key:
+  - OpenAI API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+  - Google Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey)
 
 ### Installation
 
@@ -79,11 +82,21 @@ POSTGRES_URL=postgresql://user:password@localhost:5432/v0_diy
 # Authentication (required - generate with: openssl rand -base64 32)
 AUTH_SECRET=your_auth_secret_here
 
-# v0 API (required)
-V0_API_KEY=your_v0_api_key_here
+# AI Provider (optional - defaults to auto-detect from available API keys)
+# Options: "openai" | "gemini"
+AI_PROVIDER=
 
-# Optional: Custom v0 API URL
-V0_API_URL=
+# OpenAI API (required if using OpenAI)
+OPENAI_API_KEY=sk-your_openai_api_key_here
+
+# Optional: OpenAI model to use (defaults to gpt-4-turbo-preview)
+OPENAI_MODEL=
+
+# Google Gemini API (required if using Gemini)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Optional: Gemini model to use (defaults to gemini-2.0-flash)
+GEMINI_MODEL=
 ```
 
 > **Note:** In development mode, if `AUTH_SECRET` is not set, a default development secret will be used automatically.
@@ -134,9 +147,10 @@ The application will be available at `http://localhost:3000`.
 - **Vercel Postgres** — Cloud-hosted PostgreSQL support
 
 ### AI Integration
-- **v0 SDK 0.15.3** — Official v0.app API client
+- **OpenAI GPT-4** — AI-powered React component generation via OpenAI
+- **Google Gemini** — Alternative AI provider with Gemini models
 - **AI SDK 6.0.11** — Streaming AI response handling
-- **@v0-sdk/react 0.4.1** — React components for AI interactions
+- **@v0-sdk/react 0.4.1** — React components for structured content rendering
 
 ### Developer Experience
 - **Biome 2.3.11** — Fast linter and formatter

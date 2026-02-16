@@ -1,4 +1,13 @@
-import type { MessageBinaryFormat } from "@v0-sdk/react";
+/**
+ * Type for structured message content (array-of-arrays binary format).
+ * Used for backward compatibility with @v0-sdk/react rendering components.
+ */
+export type MessageBinaryFormat = [number, ...unknown[]][];
+
+/**
+ * General message content type supporting both string and structured formats.
+ */
+export type MessageContent = string | MessageBinaryFormat;
 
 /**
  * Task part types for structured task content in shared-components
