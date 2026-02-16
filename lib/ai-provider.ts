@@ -1,3 +1,4 @@
+import Anthropic from "@anthropic-ai/sdk";
 import {
   GoogleGenerativeAI,
   type GenerateContentStreamResult,
@@ -5,7 +6,7 @@ import {
 import OpenAI from "openai";
 
 // Supported AI providers
-export type AIProviderType = "openai" | "gemini";
+export type AIProviderType = "openai" | "gemini" | "claude";
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -27,7 +28,11 @@ interface StreamChunk {
  */
 export function getActiveProvider(requested?: string): AIProviderType {
   // Allow per-request override
-  if (requested === "openai" || requested === "gemini") {
+  if (
+    requested === "openai" ||
+    requested === "gemini" ||
+    requested === "claude"
+  ) {
     return requested;
   }
 
@@ -35,6 +40,9 @@ export function getActiveProvider(requested?: string): AIProviderType {
   const envProvider = process.env.AI_PROVIDER?.toLowerCase();
   if (envProvider === "gemini") {
     return "gemini";
+  }
+  if (envProvider === "claude") {
+    return "claude";
   }
   if (envProvider === "openai") {
     return "openai";
@@ -46,6 +54,9 @@ export function getActiveProvider(requested?: string): AIProviderType {
   }
   if (process.env.GEMINI_API_KEY) {
     return "gemini";
+  }
+  if (process.env.ANTHROPIC_API_KEY) {
+    return "claude";
   }
 
   // Default
@@ -63,6 +74,9 @@ export function getAvailableProviders(): AIProviderType[] {
   if (process.env.GEMINI_API_KEY) {
     providers.push("gemini");
   }
+  if (process.env.ANTHROPIC_API_KEY) {
+    providers.push("claude");
+  }
   return providers;
 }
 
@@ -72,6 +86,9 @@ export function getAvailableProviders(): AIProviderType[] {
 function getModelForProvider(provider: AIProviderType): string {
   if (provider === "gemini") {
     return process.env.GEMINI_MODEL || "gemini-2.0-flash";
+  }
+  if (provider === "claude") {
+    return process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
   }
   return process.env.OPENAI_MODEL || "gpt-4-turbo-preview";
 }
@@ -203,6 +220,83 @@ async function* geminiStream(
   }
 }
 
+// --- Claude/Anthropic implementation ---
+
+function getAnthropicClient(): Anthropic {
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+}
+
+function toAnthropicMessages(messages: ChatMessage[]): {
+  system: string;
+  messages: Array<{ role: "user" | "assistant"; content: string }>;
+} {
+  let system = "";
+  const anthropicMessages: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }> = [];
+
+  for (const msg of messages) {
+    if (msg.role === "system") {
+      system += (system ? "\n" : "") + msg.content;
+    } else {
+      anthropicMessages.push({
+        role: msg.role as "user" | "assistant",
+        content: msg.content,
+      });
+    }
+  }
+
+  return { system, messages: anthropicMessages };
+}
+
+async function claudeCompletion(
+  messages: ChatMessage[],
+  config: CompletionConfig,
+): Promise<string> {
+  const client = getAnthropicClient();
+  const { system, messages: anthropicMessages } = toAnthropicMessages(messages);
+
+  const response = await client.messages.create({
+    model: getModelForProvider("claude"),
+    max_tokens: config.maxTokens ?? 4096,
+    system: system || undefined,
+    messages: anthropicMessages,
+  });
+
+  return response.content
+    .filter((block): block is Anthropic.TextBlock => block.type === "text")
+    .map((block) => block.text)
+    .join("");
+}
+
+async function* claudeStream(
+  messages: ChatMessage[],
+  config: CompletionConfig,
+): AsyncGenerator<StreamChunk> {
+  const client = getAnthropicClient();
+  const { system, messages: anthropicMessages } = toAnthropicMessages(messages);
+
+  const stream = client.messages.stream({
+    model: getModelForProvider("claude"),
+    max_tokens: config.maxTokens ?? 4096,
+    system: system || undefined,
+    messages: anthropicMessages,
+  });
+
+  for await (const event of stream) {
+    if (
+      event.type === "content_block_delta" &&
+      event.delta.type === "text_delta"
+    ) {
+      const content = event.delta.text;
+      if (content) {
+        yield { content };
+      }
+    }
+  }
+}
+
 // --- Public API ---
 
 export async function createCompletion(
@@ -212,6 +306,9 @@ export async function createCompletion(
 ): Promise<string> {
   if (provider === "gemini") {
     return geminiCompletion(messages, config);
+  }
+  if (provider === "claude") {
+    return claudeCompletion(messages, config);
   }
   return openaiCompletion(messages, config);
 }
@@ -223,6 +320,8 @@ export async function* createStreamingCompletion(
 ): AsyncGenerator<StreamChunk> {
   if (provider === "gemini") {
     yield* geminiStream(messages, config);
+  } else if (provider === "claude") {
+    yield* claudeStream(messages, config);
   } else {
     yield* openaiStream(messages, config);
   }

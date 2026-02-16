@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, Sparkles } from "lucide-react";
+import { Bot, MessageSquare, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
   Select,
@@ -10,16 +10,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-type Provider = "openai" | "gemini";
+type Provider = "openai" | "gemini" | "claude";
 
 const providerLabels: Record<Provider, string> = {
   openai: "OpenAI",
   gemini: "Gemini",
+  claude: "Claude",
 };
 
 const providerIcons: Record<Provider, React.ReactNode> = {
   openai: <Bot className="h-3.5 w-3.5" />,
   gemini: <Sparkles className="h-3.5 w-3.5" />,
+  claude: <MessageSquare className="h-3.5 w-3.5" />,
 };
 
 interface ProviderSelectorProps {
