@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@ai-sdk/react": "3.0.40",
+    "@anthropic-ai/sdk": "0.74.0",
     "@google/generative-ai": "^0.21.0",
     "@radix-ui/react-avatar": "1.1.11",
     "@radix-ui/react-collapsible": "1.1.12",
